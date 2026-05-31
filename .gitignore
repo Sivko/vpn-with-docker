@@ -1,0 +1,19 @@
+# Секреты и сгенерированный конфиг
+.env
+.env.local
+.env.*.local
+config/config.json
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
