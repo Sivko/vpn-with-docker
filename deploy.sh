@@ -50,7 +50,8 @@ generate_uuid() {
 }
 
 generate_short_id() {
-  openssl rand -hex 8
+  # 4 байта (8 hex) — совместимость с v2rayN / Nekoray / Hiddify
+  openssl rand -hex 4
 }
 
 generate_reality_keys() {
@@ -97,8 +98,10 @@ ensure_env() {
 
   : "${SERVER_HOST:=${REMOTE_HOST}}"
   : "${VLESS_PORT:=443}"
-  : "${REALITY_SERVER_NAME:=www.microsoft.com}"
-  : "${REALITY_DEST:=www.microsoft.com:443}"
+  : "${REALITY_SERVER_NAME:=www.google.com}"
+  : "${REALITY_DEST:=www.google.com:443}"
+  : "${REALITY_FINGERPRINT:=chrome}"
+  : "${REALITY_SHORT_ID_LEGACY:=}"
   : "${CLIENT_NAME:=vpn-server}"
 
   if [[ "$changed" -eq 1 ]]; then
@@ -109,8 +112,10 @@ VLESS_UUID=${VLESS_UUID}
 REALITY_PRIVATE_KEY=${REALITY_PRIVATE_KEY}
 REALITY_PUBLIC_KEY=${REALITY_PUBLIC_KEY}
 REALITY_SHORT_ID=${REALITY_SHORT_ID}
+REALITY_SHORT_ID_LEGACY=${REALITY_SHORT_ID_LEGACY}
 REALITY_SERVER_NAME=${REALITY_SERVER_NAME}
 REALITY_DEST=${REALITY_DEST}
+REALITY_FINGERPRINT=${REALITY_FINGERPRINT}
 CLIENT_NAME=${CLIENT_NAME}
 EOF
     log "Обновлён $ENV_FILE"
@@ -126,7 +131,7 @@ print_client_link() {
     || printf '%s' "${CLIENT_NAME}" | sed 's/ /%20/g')"
 
   local link
-  link="vless://${VLESS_UUID}@${SERVER_HOST}:${VLESS_PORT}?encryption=none&flow=xtls-rprx-vision&security=reality&sni=${REALITY_SERVER_NAME}&fp=chrome&pbk=${REALITY_PUBLIC_KEY}&sid=${REALITY_SHORT_ID}&type=tcp#${encoded_name}"
+  link="vless://${VLESS_UUID}@${SERVER_HOST}:${VLESS_PORT}?encryption=none&flow=xtls-rprx-vision&security=reality&sni=${REALITY_SERVER_NAME}&fp=${REALITY_FINGERPRINT:-chrome}&pbk=${REALITY_PUBLIC_KEY}&sid=${REALITY_SHORT_ID}&type=tcp#${encoded_name}"
 
   echo
   echo "========== Клиентская ссылка VLESS =========="
