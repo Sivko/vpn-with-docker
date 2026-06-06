@@ -15,7 +15,7 @@
       "strict_route": true,
       "stack": "mixed",
       "route_exclude_address": [
-        "23.164.240.80/32"
+        "93.123.13.8/32"
       ]
     }
   ],
@@ -23,9 +23,9 @@
     {
       "type": "vless",
       "tag": "proxy",
-      "server": "23.164.240.80",
+      "server": "93.123.13.8",
       "server_port": 443,
-      "uuid": "c6fae12c-b773-4bcd-a717-64f39cfccea6",
+      "uuid": "ce8e351a-7987-40be-8324-f1fcd347d730",
       "flow": "xtls-rprx-vision",
       "network": "tcp",
       "tls": {
@@ -38,7 +38,7 @@
         },
         "utls": {
           "enabled": true,
-          "fingerprint": "chrome"
+          "fingerprint": "firefox"
         }
       }
     },
@@ -48,7 +48,7 @@
   "route": {
     "rules": [
       {
-        "ip_cidr": ["23.164.240.80/32"],
+        "ip_cidr": ["93.123.13.8/32"],
         "outbound": "direct"
       }
     ],

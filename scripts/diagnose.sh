@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REMOTE="${REMOTE:-root@23.164.240.80}"
+REMOTE="${REMOTE:-root@93.123.13.8}"
 REMOTE_DIR="${REMOTE_DIR:-/opt/vless-vpn}"
 HOST="${REMOTE#*@}"
 
@@ -69,9 +69,9 @@ ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 if [[ -f "$ROOT_DIR/.env" ]]; then
   # shellcheck disable=SC1090
   source "$ROOT_DIR/.env"
-  echo "vless://${VLESS_UUID}@${SERVER_HOST}:${VLESS_PORT}?encryption=none&flow=xtls-rprx-vision&security=reality&sni=${REALITY_SERVER_NAME}&fp=${REALITY_FINGERPRINT:-chrome}&pbk=${REALITY_PUBLIC_KEY}&sid=${REALITY_SHORT_ID}&type=tcp#${CLIENT_NAME}"
+  echo "vless://${VLESS_UUID}@${SERVER_HOST}:${VLESS_PORT}?encryption=none&flow=xtls-rprx-vision&security=reality&sni=${REALITY_SERVER_NAME}&fp=${REALITY_FINGERPRINT:-firefox}&pbk=${REALITY_PUBLIC_KEY}&sid=${REALITY_SHORT_ID}&type=tcp#${CLIENT_NAME}"
   echo
-  echo "Клиент: security=reality | flow=xtls-rprx-vision | SNI=${REALITY_SERVER_NAME} | shortId=${REALITY_SHORT_ID} | fp=${REALITY_FINGERPRINT:-chrome}"
+  echo "Клиент: security=reality | flow=xtls-rprx-vision | SNI=${REALITY_SERVER_NAME} | shortId=${REALITY_SHORT_ID} | fp=${REALITY_FINGERPRINT:-firefox}"
 fi
 
 echo

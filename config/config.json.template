@@ -9,12 +9,7 @@
       "protocol": "vless",
       "tag": "vless-reality-in",
       "settings": {
-        "clients": [
-          {
-            "id": "${VLESS_UUID}",
-            "flow": "xtls-rprx-vision"
-          }
-        ],
+        "clients": ${VLESS_CLIENTS_JSON},
         "decryption": "none"
       },
       "streamSettings": {
@@ -24,7 +19,7 @@
           "show": false,
           "dest": "${REALITY_DEST}",
           "xver": 0,
-          "serverNames": ["${REALITY_SERVER_NAME}"],
+          "serverNames": ${REALITY_SERVER_NAMES_JSON},
           "privateKey": "${REALITY_PRIVATE_KEY}",
           "shortIds": ["", "${REALITY_SHORT_ID}", "${REALITY_SHORT_ID_LEGACY}"]
         }

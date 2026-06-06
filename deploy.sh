@@ -3,10 +3,10 @@ set -euo pipefail
 
 # Деплой VLESS (Xray + Reality) на Ubuntu-сервер
 # Использование: ./deploy.sh
-# Требуется: ssh-доступ к root@23.164.240.80 (ключ в ssh-agent)
+# Требуется: ssh-доступ к root@93.123.13.8 (ключ в ssh-agent)
 
 REMOTE_USER="root"
-REMOTE_HOST="23.164.240.80"
+REMOTE_HOST="93.123.13.8"
 REMOTE="${REMOTE_USER}@${REMOTE_HOST}"
 REMOTE_DIR="/opt/vless-vpn"
 
@@ -100,7 +100,7 @@ ensure_env() {
   : "${VLESS_PORT:=443}"
   : "${REALITY_SERVER_NAME:=www.google.com}"
   : "${REALITY_DEST:=www.google.com:443}"
-  : "${REALITY_FINGERPRINT:=chrome}"
+  : "${REALITY_FINGERPRINT:=firefox}"
   : "${REALITY_SHORT_ID_LEGACY:=}"
   : "${CLIENT_NAME:=vpn-server}"
 
@@ -131,7 +131,7 @@ print_client_link() {
     || printf '%s' "${CLIENT_NAME}" | sed 's/ /%20/g')"
 
   local link
-  link="vless://${VLESS_UUID}@${SERVER_HOST}:${VLESS_PORT}?encryption=none&flow=xtls-rprx-vision&security=reality&sni=${REALITY_SERVER_NAME}&fp=${REALITY_FINGERPRINT:-chrome}&pbk=${REALITY_PUBLIC_KEY}&sid=${REALITY_SHORT_ID}&type=tcp#${encoded_name}"
+  link="vless://${VLESS_UUID}@${SERVER_HOST}:${VLESS_PORT}?encryption=none&flow=xtls-rprx-vision&security=reality&sni=${REALITY_SERVER_NAME}&fp=${REALITY_FINGERPRINT:-firefox}&pbk=${REALITY_PUBLIC_KEY}&sid=${REALITY_SHORT_ID}&type=tcp#${encoded_name}"
 
   echo
   echo "========== Клиентская ссылка VLESS =========="

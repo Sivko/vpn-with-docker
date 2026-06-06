@@ -3,8 +3,8 @@
 ## Симптом в логах
 
 ```
-inbound/tun → 23.164.240.80:443
-outbound/direct → 23.164.240.80:443
+inbound/tun → 93.123.13.8:443
+outbound/direct → 93.123.13.8:443
 ERROR: forcibly closed by the remote host (~19s)
 ```
 
@@ -16,7 +16,7 @@ ERROR: forcibly closed by the remote host (~19s)
 
 1. Удалите профиль и импортируйте ссылку заново.
 2. Найдите настройки маршрутизации / TUN / «Исключения»:
-   - добавьте **`23.164.240.80`** в исключения из VPN (bypass / route exclude);
+   - добавьте **`93.123.13.8`** в исключения из VPN (bypass / route exclude);
    - или отключите «проксировать адрес сервера через туннель».
 3. Режим: **глобальный VPN** или **правила**, но IP сервера не должен идти в tun как `direct` TCP.
 4. Проверьте в профиле: **Reality**, flow **xtls-rprx-vision**, SNI **www.google.com**, shortId **8be758e2**.
