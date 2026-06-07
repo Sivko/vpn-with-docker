@@ -1,30 +1,19 @@
-# Happ (FlyFrog) — типичная ошибка
+# Happ / FlyFrog Notes
 
-## Симптом в логах
+If Happ logs show a direct TCP connection to the VPN server and then a forced close, the TUN route is probably catching the VPN server address itself.
 
+Typical symptom:
+
+```text
+inbound/tun -> YOUR_SERVER_IP:443
+outbound/direct -> YOUR_SERVER_IP:443
+ERROR: forcibly closed by the remote host
 ```
-inbound/tun → 93.123.13.8:443
-outbound/direct → 93.123.13.8:443
-ERROR: forcibly closed by the remote host (~19s)
-```
 
-Трафик к **IP VPN-сервера** попадает в TUN и уходит как **обычный TCP** (`direct`), без VLESS+Reality. Xray на сервере ждёт handshake Reality и закрывает соединение.
+Fix in Happ:
 
-Сервер при этом исправен (в логах xray бывают `accepted tcp:...` с вашего IP).
+1. Reimport the fresh `vless://` link printed by `deploy.sh` or `scripts/add-user.sh`.
+2. Add the server IP to TUN bypass / route exclusions.
+3. Check that the profile uses Reality, `xtls-rprx-vision`, SNI from `.env`, and shortId from `.env`.
 
-## Что сделать в Happ
-
-1. Удалите профиль и импортируйте ссылку заново.
-2. Найдите настройки маршрутизации / TUN / «Исключения»:
-   - добавьте **`93.123.13.8`** в исключения из VPN (bypass / route exclude);
-   - или отключите «проксировать адрес сервера через туннель».
-3. Режим: **глобальный VPN** или **правила**, но IP сервера не должен идти в tun как `direct` TCP.
-4. Проверьте в профиле: **Reality**, flow **xtls-rprx-vision**, SNI **www.google.com**, shortId **8be758e2**.
-
-## Альтернатива (проверено проще)
-
-**v2rayN** или **Hiddify** — импорт той же `vless://` ссылки из deploy.
-
-## Ручной конфиг sing-box
-
-Файл `sing-box-happ.json` — импорт в Happ, если поддерживается JSON (с `route_exclude_address` для IP сервера).
+Generated client JSON files are ignored by Git because they contain live connection details.

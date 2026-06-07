@@ -1,14 +1,18 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REMOTE="${REMOTE:-root@93.123.13.8}"
-REMOTE_DIR="${REMOTE_DIR:-/opt/vless-vpn}"
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-SERVER_HOST="${SERVER_HOST:-93.123.13.8}"
+if [[ -f "$ROOT_DIR/.env" ]]; then
+  # shellcheck disable=SC1090
+  source "$ROOT_DIR/.env"
+fi
+SERVER_HOST="${SERVER_HOST:-YOUR_SERVER_IP_OR_DOMAIN}"
+REMOTE="${REMOTE:-root@${SERVER_HOST}}"
+REMOTE_DIR="${REMOTE_DIR:-/opt/vless-vpn}"
 VLESS_PORT="${VLESS_PORT:-443}"
-REALITY_SERVER_NAME="${REALITY_SERVER_NAME:-www.google.com}"
-REALITY_PUBLIC_KEY="${REALITY_PUBLIC_KEY:-tEyLspIEcw7iqE0CU7JbZBx7PmAnaVUAYIbKl2rKrQM}"
-REALITY_SHORT_ID="${REALITY_SHORT_ID:-8be758e2}"
+REALITY_SERVER_NAME="${REALITY_SERVER_NAME:-duckduckgo.com}"
+REALITY_PUBLIC_KEY="${REALITY_PUBLIC_KEY:-}"
+REALITY_SHORT_ID="${REALITY_SHORT_ID:-}"
 REALITY_FINGERPRINT="${REALITY_FINGERPRINT:-firefox}"
 
 usage() {
@@ -17,7 +21,7 @@ Usage: $0 USER_NAME
 
 Examples:
   $0 user-06
-  REMOTE=root@93.123.13.8 $0 alice
+  REMOTE=root@YOUR_SERVER_IP_OR_DOMAIN $0 alice
 EOF
 }
 

@@ -3,15 +3,20 @@ set -euo pipefail
 
 # Деплой VLESS (Xray + Reality) на Ubuntu-сервер
 # Использование: ./deploy.sh
-# Требуется: ssh-доступ к root@93.123.13.8 (ключ в ssh-agent)
-
-REMOTE_USER="root"
-REMOTE_HOST="93.123.13.8"
-REMOTE="${REMOTE_USER}@${REMOTE_HOST}"
-REMOTE_DIR="/opt/vless-vpn"
+# Требуется: ssh-доступ к root@SERVER_HOST (ключ в ssh-agent)
 
 LOCAL_DIR="$(cd "$(dirname "$0")" && pwd)"
 ENV_FILE="${LOCAL_DIR}/.env"
+
+if [[ -f "$ENV_FILE" ]]; then
+  # shellcheck disable=SC1090
+  source "$ENV_FILE"
+fi
+
+REMOTE_USER="${REMOTE_USER:-root}"
+REMOTE_HOST="${REMOTE_HOST:-${SERVER_HOST:-}}"
+REMOTE="${REMOTE_USER}@${REMOTE_HOST}"
+REMOTE_DIR="${REMOTE_DIR:-/opt/vless-vpn}"
 
 log() { printf '[deploy] %s\n' "$*"; }
 die() { printf '[deploy] ERROR: %s\n' "$*" >&2; exit 1; }
@@ -98,10 +103,9 @@ ensure_env() {
 
   : "${SERVER_HOST:=${REMOTE_HOST}}"
   : "${VLESS_PORT:=443}"
-  : "${REALITY_SERVER_NAME:=www.google.com}"
-  : "${REALITY_DEST:=www.google.com:443}"
+  : "${REALITY_SERVER_NAME:=duckduckgo.com}"
+  : "${REALITY_DEST:=duckduckgo.com:443}"
   : "${REALITY_FINGERPRINT:=firefox}"
-  : "${REALITY_SHORT_ID_LEGACY:=}"
   : "${CLIENT_NAME:=vpn-server}"
 
   if [[ "$changed" -eq 1 ]]; then
@@ -112,7 +116,6 @@ VLESS_UUID=${VLESS_UUID}
 REALITY_PRIVATE_KEY=${REALITY_PRIVATE_KEY}
 REALITY_PUBLIC_KEY=${REALITY_PUBLIC_KEY}
 REALITY_SHORT_ID=${REALITY_SHORT_ID}
-REALITY_SHORT_ID_LEGACY=${REALITY_SHORT_ID_LEGACY}
 REALITY_SERVER_NAME=${REALITY_SERVER_NAME}
 REALITY_DEST=${REALITY_DEST}
 REALITY_FINGERPRINT=${REALITY_FINGERPRINT}
@@ -155,6 +158,10 @@ main() {
   need_cmd scp
   need_cmd openssl
 
+  if [[ -z "$REMOTE_HOST" ]]; then
+    die "Set SERVER_HOST in .env or run with REMOTE_HOST=your.server.ip"
+  fi
+
   log "Проверка SSH до ${REMOTE}..."
   ssh -o BatchMode=yes -o ConnectTimeout=10 "$REMOTE" "echo ok" >/dev/null \
     || die "Нет SSH-доступа к ${REMOTE}. Добавьте ключ: ssh-copy-id ${REMOTE}"
@@ -171,7 +178,9 @@ main() {
   log "Копирование файлов на сервер..."
   ssh "$REMOTE" "mkdir -p ${REMOTE_DIR}/config ${REMOTE_DIR}/scripts"
   scp -q "${LOCAL_DIR}/docker-compose.yml" "${REMOTE}:${REMOTE_DIR}/"
+  scp -q "${LOCAL_DIR}/config/config.json.template" "${REMOTE}:${REMOTE_DIR}/config/"
   scp -q "${LOCAL_DIR}/config/config.json" "${REMOTE}:${REMOTE_DIR}/config/"
+  scp -q "${LOCAL_DIR}/scripts/render-config.sh" "${REMOTE}:${REMOTE_DIR}/scripts/"
   scp -q "${LOCAL_DIR}/.env" "${REMOTE}:${REMOTE_DIR}/.env"
 
   log "Установка Docker и запуск на сервере..."
@@ -201,11 +210,14 @@ install_docker() {
 install_docker
 
 if command -v ufw >/dev/null 2>&1 && ufw status 2>/dev/null | grep -q "Status: active"; then
-  ufw allow 443/tcp comment 'vless-xray' || true
+  # shellcheck disable=SC1091
+  source .env
+  ufw allow "${VLESS_PORT:-443}/tcp" comment 'vless-xray' || true
 fi
 
 docker compose pull
 docker compose up -d
+docker compose restart xray
 docker compose ps
 
 echo "[remote] Xray запущен"

@@ -1,9 +1,16 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REMOTE="${REMOTE:-root@93.123.13.8}"
+ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+if [[ -f "$ROOT_DIR/.env" ]]; then
+  # shellcheck disable=SC1090
+  source "$ROOT_DIR/.env"
+fi
+SERVER_HOST="${SERVER_HOST:-YOUR_SERVER_IP_OR_DOMAIN}"
+REMOTE="${REMOTE:-root@${SERVER_HOST}}"
 REMOTE_DIR="${REMOTE_DIR:-/opt/vless-vpn}"
 HOST="${REMOTE#*@}"
+VLESS_PORT="${VLESS_PORT:-443}"
 
 ping_host() {
   case "$(uname -s 2>/dev/null)" in
@@ -20,33 +27,33 @@ echo "=== 1. Ping (ICMP) — не проверяет VPN ==="
 ping_host 2>/dev/null || echo "(ping пропущен или недоступен)"
 
 echo
-echo "=== 2. TCP 443 с вашего ПК ==="
-test_tcp_443() {
+echo "=== 2. TCP ${VLESS_PORT} с вашего ПК ==="
+test_tcp_port() {
   # Git Bash: nc часто врёт (FAIL при рабочем VPN) — сначала PowerShell / bash tcp
   if command -v powershell.exe >/dev/null 2>&1; then
     if powershell.exe -NoProfile -Command \
-      "(Test-NetConnection -ComputerName '$HOST' -Port 443 -WarningAction SilentlyContinue).TcpTestSucceeded" 2>/dev/null \
+      "(Test-NetConnection -ComputerName '$HOST' -Port $VLESS_PORT -WarningAction SilentlyContinue).TcpTestSucceeded" 2>/dev/null \
       | grep -qi true; then
       return 0
     fi
   fi
-  if (echo >/dev/tcp/"$HOST"/443) 2>/dev/null; then
+  if (echo >/dev/tcp/"$HOST"/"$VLESS_PORT") 2>/dev/null; then
     return 0
   fi
-  if command -v nc >/dev/null 2>&1 && nc -z -w 5 "$HOST" 443 2>/dev/null; then
+  if command -v nc >/dev/null 2>&1 && nc -z -w 5 "$HOST" "$VLESS_PORT" 2>/dev/null; then
     return 0
   fi
-  if command -v nc >/dev/null 2>&1 && nc -zv -w 5 "$HOST" 443 2>&1 | grep -qi succeeded; then
+  if command -v nc >/dev/null 2>&1 && nc -zv -w 5 "$HOST" "$VLESS_PORT" 2>&1 | grep -qi succeeded; then
     return 0
   fi
   return 1
 }
 
-if test_tcp_443; then
-  echo "OK: TCP 443 до ${HOST} доступен"
+if test_tcp_port; then
+  echo "OK: TCP ${VLESS_PORT} до ${HOST} доступен"
 else
-  echo "FAIL: TCP 443 недоступен с ПК (ISP/фаервол) — VPN не подключится"
-  echo "      Проверка вручную: powershell -Command \"Test-NetConnection ${HOST} -Port 443\""
+  echo "FAIL: TCP ${VLESS_PORT} недоступен с ПК (ISP/фаервол) — VPN не подключится"
+  echo "      Проверка вручную: powershell -Command \"Test-NetConnection ${HOST} -Port ${VLESS_PORT}\""
 fi
 
 echo
@@ -55,17 +62,16 @@ ssh -o ConnectTimeout=10 "$REMOTE" bash -s <<EOF
 set -e
 cd $REMOTE_DIR
 docker compose ps
-echo "--- listen 443 ---"
-ss -tlnp | grep ':443' || true
+echo "--- listen ${VLESS_PORT} ---"
+ss -tlnp | grep ":${VLESS_PORT}" || true
 echo "--- последние подключения (accepted) ---"
 docker logs xray-vless 2>&1 | grep 'accepted tcp' | tail -5 || echo "(пока нет — включите VPN и повторите diagnose)"
 echo "--- dest reach ---"
-curl -sI --connect-timeout 3 https://www.google.com | head -1
+curl -sI --connect-timeout 3 https://duckduckgo.com | head -1
 EOF
 
 echo
 echo "=== 4. Ссылка из .env ==="
-ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 if [[ -f "$ROOT_DIR/.env" ]]; then
   # shellcheck disable=SC1090
   source "$ROOT_DIR/.env"

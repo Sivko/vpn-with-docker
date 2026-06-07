@@ -1,8 +1,14 @@
-# Секреты и сгенерированный конфиг
+# Secrets and generated configs
 .env
 .env.local
 .env.*.local
 config/config.json
+client/*.json
+!client/*.example.json
+
+# SSH/deploy scratch
+*.pem
+*.key
 
 # OS
 .DS_Store
@@ -10,6 +16,7 @@ Thumbs.db
 desktop.ini
 
 # Editor
+.vscode/
 .idea/
 *.swp
 *.swo
